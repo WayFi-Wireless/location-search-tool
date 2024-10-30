@@ -303,7 +303,8 @@
             // Make the status element and its tooltip container visible
             tooltipContainer.style.display = 'block';
             statusElement.style.display = 'inline';
-        }             
+        } 
+        
         function calculateOffload() {
             // Get the value from the input field
             const footTraffic = parseFloat(document.getElementById('foot-traffic').value);
@@ -315,12 +316,13 @@
             }
         
             // Calculate the estimated offload in GB
-            const estimatedOffloadMb = (footTraffic / 2) * 0.01; // Offload in MB
-            const estimatedOffloadGb = estimatedOffloadMb / 1024; // Convert MB to GB
+            const estimatedOffloadMb = (footTraffic / 2) * 0.01; // Estimated offload in megabits (Mb)
+            const estimatedOffloadMB = estimatedOffloadMb / 8;    // Convert Mb to MB (bytes)
+            const estimatedOffloadGB = estimatedOffloadMB / 1024; // Convert MB to GB
         
             // Display the result
             const resultElement = document.getElementById("offload-result");
-            resultElement.textContent = `Estimated Offload: ${estimatedOffloadGb.toFixed(2)} GB`;
+            resultElement.textContent = `Estimated Offload: ${estimatedOffloadGB.toFixed(2)} GB`;
         }
     </script>
 </head>
