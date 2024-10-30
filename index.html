@@ -363,7 +363,7 @@
             <label for="foot-traffic">Enter Estimated Foot Traffic:</label>
             <input type="number" id="foot-traffic" placeholder="Enter the number of users in a given interval" min="0" />
             <button onclick="calculateOffload()">Estimate Offload</button>
-            <div class="tooltip">
+            <div class="tooltip" style="display: block;">
             This calculator produces estimates of offload based on network averages across all the networks for average dwell time. If the dwell time is higher than the average location, then these numbers will be perportionally lower.
             </div>   
             <p id="offload-result"></p>
