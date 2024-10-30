@@ -315,13 +315,17 @@
                 return;
             }
         
-            // Calculate the estimated offload in GB
-            const estimatedOffloadMB = (footTraffic / 2) * 0.1; // Estimated offload in megabits (Mb)
-            const estimatedOffloadGB = estimatedOffloadMB / 1024; // Convert MB to GB
+            // Calculate the minimum and maximum estimated offload in GB
+            const minEstimatedOffloadMB = (footTraffic / 2) * 0.1; // Minimum offload in megabits (Mb)
+            const maxEstimatedOffloadMB = (footTraffic / 2) * 1.0; // Maximum offload in megabits (Mb)
         
-            // Display the result
+            // Convert both to megabytes (MB) and then to gigabytes (GB)
+            const minEstimatedOffloadGB = minEstimatedOffloadMB / 1024;
+            const maxEstimatedOffloadGB = maxEstimatedOffloadMB / 1024;
+        
+            // Display the result as a range
             const resultElement = document.getElementById("offload-result");
-            resultElement.textContent = `Estimated Offload: ${estimatedOffloadGB.toFixed(2)} GB`;
+            resultElement.textContent = `Estimated Offload: ${minEstimatedOffloadGB.toFixed(2)} - ${maxEstimatedOffloadGB.toFixed(2)} GB`;
         }
     </script>
 </head>
