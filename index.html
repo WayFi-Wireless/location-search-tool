@@ -164,6 +164,9 @@
         }
 
         function classifyLocation(className, typeName) {
+            // Log the class and type of the location to the console
+            console.log("Location Class:", className);
+            console.log("Location Type:", typeName);
             const residentialClasses = {
                 "building": ["apartments", "block", "dormitory", "flats", "house", "home", "residential", "terrace", "yes", "detached", "construction", "semidetached_house", "static_caravan"],
                 "place": ["apartments", "block", "dormitory", "flats", "house", "residential", "terrace", "yes"],
