@@ -1,11 +1,5 @@
 [![Sponsor](https://img.shields.io/badge/Sponsor-Click%20Here-ff69b4)](https://github.com/sponsors/simeononsecurity)
-
-<a href="https://simeononsecurity.com" target="_blank" rel="noopener noreferrer">
-  <h2>Discover the Depths of Cybersecurity</h2>
-</a>
-<a href="https://simeononsecurity.com" target="_blank" rel="noopener noreferrer">
-  <img src="https://simeononsecurity.com/img/banner.png" alt="SimeonOnSecurity Logo" width="300" height="300">
-</a>
+[![Sponsor](https://img.shields.io/badge/Sponsor-Click%20Here-ff69b4)](https://github.com/sponsors/simeononsecurity)
 
 ---
 
@@ -30,3 +24,10 @@ Simply clone the repository, open `index.html` in a browser, and enter an addres
 ---
 
 Created and maintained by [SimeonOnSecurity](https://simeononsecurity.com).
+
+<a href="https://simeononsecurity.com" target="_blank" rel="noopener noreferrer">
+  <h2>Discover the Depths of Cybersecurity</h2>
+</a>
+<a href="https://simeononsecurity.com" target="_blank" rel="noopener noreferrer">
+  <img src="https://simeononsecurity.com/img/banner.png" alt="SimeonOnSecurity Logo" width="300" height="300">
+</a>
