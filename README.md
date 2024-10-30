@@ -1,5 +1,5 @@
 [![Sponsor](https://img.shields.io/badge/Sponsor-Click%20Here-ff69b4)](https://github.com/sponsors/simeononsecurity)
-[![Sponsor](https://img.shields.io/badge/Sponsor-Click%20Here-ff69b4)](https://github.com/sponsors/simeononsecurity)
+[![Offload Search](https://img.shields.io/badge/Offload%20Search-Explore-007acc)](https://offloadsearch.simeononsecurity.com)
 
 ---
 
