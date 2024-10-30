@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Location Search Tool</title>
+    <style>
+        /* Background gradient animation */
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .gradient {
+            --size: 750px;
+            --speed: 50s;
+            --easing: cubic-bezier(0.8, 0.2, 0.2, 0.8);
+            width: var(--size);
+            height: var(--size);
+            filter: blur(calc(var(--size) / 5));
+            background-image: linear-gradient(hsl(222, 84%, 60%), hsl(164, 79%, 71%));
+            animation: rotate var(--speed) var(--easing) alternate infinite;
+            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        @media (min-width: 720px) { .gradient { --size: 500px; } }
+
+        /* Styling for the main content and layout */
+        body {
+            background-color: #071c39;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            color: #000;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 400px;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 8px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            z-index: 1;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1em;
+            box-sizing: border-box;
+            color: #000;
+        }
+
+        button, .link-button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1em;
+            cursor: pointer;
+            margin: 5px 0;
+            display: inline-block;
+            text-decoration: none;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        button:hover, .link-button:hover { background-color: #45a049; }
+        .links-section { margin-top: 20px; padding-top: 20px; border-top: 2px solid #ddd; }
+
+        /* Tooltip and location type styling */
+        .tooltip, .fcc-tooltip, #traffic-tooltip {
+            font-size: 0.9em;
+            color: #000;
+            margin-top: 10px;
+            background-color: #ffffcc;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ffeb3b;
+            display: none;
+        }
+
+        .location-status { font-size: 1.2em; font-weight: bold; cursor: pointer; }
+        .location-status.residential { color: red; }
+        .location-status.business { color: green; }
+        .location-status.other { color: red; }
+    </style>
+    <script>
+        async function generateLinks() {
+            const address = document.getElementById('address').value;
+            if (!address) {
+                alert("Please enter an address.");
+                return;
+            }
+        
+            // Show tooltips and location status after button click
+            document.querySelector('.fcc-tooltip').style.display = 'block';
+            document.getElementById('traffic-tooltip').style.display = 'block';
+            document.getElementById('location-status').style.display = 'inline';
+        
+            const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`;
+            try {
+                const response = await fetch(geocodeUrl, {
+                    headers: { "User-Agent": "offload map" }
+                });
+                const data = await response.json();
+        
+                if (data.length > 0) {
+                    const { lat, lon } = data[0];
+        
+                    const fccLink = `https://broadbandmap.fcc.gov/provider-detail/mobile?version=dec2023&zoom=18.00&vlon=${lon}&vlat=${lat}&providers=130077_400_on%2C130403_400_on%2C131425_400_on&env=0&pct_cvg=80`;
+                    document.getElementById('fcc-link').innerHTML = `<a href="${fccLink}" target="_blank" class="link-button">Check FCC Broadband Map</a>`;
+        
+                    const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`;
+                    document.getElementById('google-maps-link').innerHTML = `<a href="${googleMapsLink}" target="_blank" class="link-button">Check on Google Maps</a>`;
+        
+                    const foursquareLink = `https://foursquare.com/explore?ll=${lat},${lon}`;
+                    document.getElementById('foursquare-link').innerHTML = `<a href="${foursquareLink}" target="_blank" class="link-button">Check on Foursquare</a>`;
+        
+                    const yelpLink = `https://www.yelp.com/search?find_loc=${lat},${lon}`;
+                    document.getElementById('yelp-link').innerHTML = `<a href="${yelpLink}" target="_blank" class="link-button">Check on Yelp</a>`;
+        
+                    // Determine and display the location type based on classification
+                    determineLocationType(lat, lon);
+                } else {
+                    document.getElementById('fcc-link').textContent = "Location not found.";
+                }
+            } catch (error) {
+                console.error("Error fetching geocode:", error);
+                document.getElementById('fcc-link').textContent = "Error fetching geocode data.";
+            }
+        }        
+
+        async function determineLocationType(lat, lon) {
+            const reverseGeocodeUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`;
+            try {
+                const response = await fetch(reverseGeocodeUrl, {
+                    headers: { "User-Agent": "offload map" }
+                });
+                const locationData = await response.json();
+
+                const className = locationData.class || "";
+                const typeName = locationData.type || "";
+
+                const locationType = classifyLocation(className, typeName);
+                displayLocationType(locationType);
+            } catch (error) {
+                console.error("Error fetching location type:", error);
+                document.getElementById("location-status").textContent = "Error determining location type";
+            }
+        }
+
+        function classifyLocation(className, typeName) {
+            const residentialClasses = {
+                "building": ["apartments", "block", "dormitory", "flats", "house", "home", "residential", "terrace", "yes", "detached", "construction", "semidetached_house", "static_caravan"],
+                "place": ["apartments", "block", "dormitory", "flats", "house", "residential", "terrace", "yes"],
+                "highway": ["residential", "cycleway", "tertiary", "footway", "living_street", "construction", "bridleway", "elevator", "raceway"],
+                "amenity": ["dormitory", "trailer_park", "events_venue"],
+                "landuse": ["residential", "farmyard"],
+                "leisure": ["garden", "recreation_ground", "fitness_station", "slipway"],
+                "historic": ["heritage"],
+                "club": ["religion"]
+            };
+
+            const businessClasses = {
+                "aerialway": ["yes"],
+                "military": ["yes", "base", "training_area"],
+                "man_made": ["bridge", "tower", "flagpole", "pier", "manhole", "mast", "works", "tunnel", "water_tower", "wastewater_plant", "storage_tank", "silo", "petroleum_well", "water_tower", "flare", "surveillance", "reservoir_covered", "chimney", "lighthouse", "water_works"],
+                "shop": ["money_lender", "convenience", "tattoo", "shoes", "funeral_directors", "mall", "clothes", "locksmith", "tobacco", "supermarket", "hunting", 
+                        "car_repair", "jewelry", "music", "mobile_phone", "houseware", "car", "car_parts", "department_store", "deli", "dry_cleaning", "laundry", 
+                        "fortune_teller", "chemist", "hearing_aids", "yes", "furniture", "newsagent", "hairdresser", "party", "car_rental", "beauty", "cannabis", 
+                        "country_store", "rental", "dental_supplies", "motorcycle", "bicycle", "lighting", "alcohol", "variety_store", "garden_centre", "trade", 
+                        "doityourself", "radiotechnics", "art", "motorcycle_repair", "stationery", "tyres", "boutique", "beverages", "health_food", "toys", 
+                        "sports", "bakery", "gift", "wholesale", "caravan", "electronics", "copyshop", "e-cigarette", "storage_rental", "erotic", "antiques", 
+                        "vacant", "cosmetics", "yes", "optician", "charity", "books", "kitchen", "online", "fuel", "repair", "paint", "hardware", "craft", "watches", "florist", "clothes;_wedding", "hairdresser_supply", "weapons"],
+                "highway": ["primary", "secondary", "trunk", "service", "motorway", "bus_stop", "pedestrian", "primary_link", "unclassified", "path", "track", 
+                            "motorway_junction", "services", "trunk_link", "steps", "turning_loop", "motorway_link", "toll_gantry"],
+                "tourism": ["attraction", "hotel", "artwork", "motel", "museum", "viewpoint", "picnic_site", "gallery", "apartment", "theme_park", "camp_site", "zoo", "aquarium", "caravan_site"],
+                "historic": ["factory", "district", "building", "park", "maritime", "memorial", "cemetery", "locomotive", "tomb", "ruins", "heritage"],
+                "craft": ["plumber", "brewery", "hvac", "insulation", "stonemason", "electronics_repair", "welder", "window_construction", "upholsterer"],
+                "healthcare": ["rehabilitation", "optometrist", "alternative", "nurse"],
+                "office": ["yes", "ngo", "tax_advisor", "estate_agent", "company", "coworking", "telecommunication", "government", "lawyer", "insurance", 
+                        "accountant", "association", "property_management", "financial", "therapist", "educational_institution", "consulting", "software"],
+                "building": ["commercial", "church", "garage", "hospital", "hotel", "industrial", "office", "public", "retail", "school", "shop", "stadium", 
+                            "store", "train_station", "university", "mixed", "storage", "warehouse", "civic", "transportation", "government", "fire_station", "parking"],
+                "amenity": [
+                    "airport", "arts_centre", "atm", "auditorium", "bank", "bar", "bicycle_parking", "bicycle_rental", "brothel", "bureau_de_change", 
+                    "bus_station", "cafe", "car_rental", "car_wash", "casino", "cinema", "club", "college", "community_centre", "courthouse", 
+                    "crematorium", "dentist", "doctors", "driving_school", "embassy", "fast_food", "ferry_terminal", "fuel", "grave_yard", 
+                    "hall", "health_centre", "hospital", "hotel", "ice_cream", "library", "market", "marketplace", "nightclub", "office", 
+                    "park", "parking", "pharmacy", "place_of_worship", "police", "post_office", "pub", "reception_area", "restaurant", "sauna", 
+                    "shop", "shopping", "social_club", "studio", "supermarket", "taxi", "theatre", "townhall", "veterinary", "youth_centre", 
+                    "kindergarten", "nursery", "nursing_home", "preschool", "retirement_home", "school", "university", "waste_disposal", "post_box", 
+                    "clinic", "conference_centre", "food_court", "social_centre", "waste_basket", "parking_entrance", "car_wash", "college", 
+                    "bicycle_parking", "bus_station", "social_centre", "casino", "conference_centre", "food_court", "marketplace", "fast_food", 
+                    "dentist", "school", "waste_disposal", "restaurant", "university", "arts_centre", "bar", "pharmacy", "place_of_worship", 
+                    "bench", "parking", "fire_station", "loading_dock", "parking_space", "bicycle_repair_station", "toilets", "shelter", 
+                    "animal_boarding", "childcare", "social_facility", "recycling", "fountain", "research_institute", "animal_shelter", 
+                    "telephone", "vending_machine", "lifeguard", "drinking_water", "reception_desk", "paint", "post_depot", "money_transfer", "events_venue", "prison", "charging_station", "shower"],
+                "landuse": ["commercial", "construction", "industrial"],
+                "aeroway": ["terminal", "aerodrome", "hangar", "apron", "holding_position", "runway", "windsock", "navigationaid"],
+                "railway": ["platform", "signal_box", "stop", "station", "junction", "subway_entrance", "yard", "service_station"],
+                "leisure": ["fitness_centre", "playground", "pitch", "common", "golf_course", "swimming_pool", "sports_centre", "dog_park", "outdoor_seating", 
+                            "marina", "nature_reserve", "stadium", "village_green", "psychic", "picnic_table", "disc_golf_course", "bowling_alley", "track", 
+                            "recreation_ground", "slipway", "ice_rink", "water_park", "amusement_arcade", "trampoline_park", "resort", "swimming_area"],
+                "boundary": ["administrative"],
+                "junction": ["yes"],
+                "emergency": ["phone", "assembly_point", "lifeguard", "ambulance_station", "psap"],
+                "club": ["social", "religion", "yes"]
+            };
+
+            if (className in residentialClasses && residentialClasses[className].includes(typeName)) {
+                return "Residential";
+            } else if (className in businessClasses && businessClasses[className].includes(typeName)) {
+                return "Business";
+            } else {
+                return "Other";
+            }
+        }
+
+        function displayLocationType(locationType) {
+            const statusElement = document.getElementById("location-status");
+            const tooltipContainer = statusElement.parentElement;  // The container for the tooltip
+        
+            if (locationType === "Business") {
+                statusElement.textContent = "Business";
+                statusElement.className = "location-status business";
+                statusElement.title = "This location is likely to be accepted by the carriers";
+            } else if (locationType === "Residential") {
+                statusElement.textContent = "Residential";
+                statusElement.className = "location-status residential";
+                statusElement.title = "This location is most likely to be rejected by the carriers";
+            } else {
+                statusElement.textContent = "Other";
+                statusElement.className = "location-status other";
+                statusElement.title = "This location classification hasn’t been determined yet";
+            }
+        
+            // Make the status element and its tooltip container visible
+            tooltipContainer.style.display = 'block';
+            statusElement.style.display = 'inline';
+        }             
+        
+    </script>
+</head>
+<body>
+    <div class="gradient"></div>
+
+    <div class="container">
+        <h1>Location Search Tool</h1>
+        <label for="address">Enter Address:</label>
+        <input type="text" id="address" placeholder="Enter an address">
+        <button onclick="generateLinks()">Generate Links</button>
+
+        <div class="links-section">
+            <div id="fcc-link"></div>
+            <div class="fcc-tooltip">Any hex that isn’t colored is likely to have unlimited offload; any colored hex will offload only if there is congestion.</div>
+            <div id="google-maps-link"></div>
+            <div id="foursquare-link"></div>
+            <div id="yelp-link"></div>
+        </div>
+
+        <!-- Display Location Classification Status with Tooltip -->
+        <div class="tooltip" id="traffic-tooltip">
+            To gauge foot traffic, view businesses within 100-300 feet of this location on Google Maps, Foursquare, and Yelp. For more metrics, visit <a href="https://placer.ai" target="_blank">placer.ai</a> (no automated searches available).
+        </div>
+        <div class="tooltip" style="display: none;">  <!-- Hide tooltip initially -->
+            Business Type: 
+            <span id="location-status" class="location-status" style="display: none;">
+                Unknown
+            </span>
+        </div>     
+        <div class="tooltip" style="display: none;">
+            Tool created by <a href="https://simeononsecurity.com">SimeonOnSecurity</a>
+        </div>    
+    </div>
+    
+</body>
+</html>
