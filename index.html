@@ -97,6 +97,54 @@
         .location-status.residential { color: red; }
         .location-status.business { color: green; }
         .location-status.other { color: red; }
+
+        /* Offload Estimator Styling */
+        .offload-estimator {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 8px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .offload-estimator label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        
+        .offload-estimator input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+        
+        .offload-estimator button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1em;
+            cursor: pointer;
+            margin-top: 5px;
+        }
+        
+        .offload-estimator button:hover {
+            background-color: #45a049;
+        }
+        
+        #offload-result {
+            margin-top: 10px;
+            font-weight: bold;
+            color: #333;
+        }
     </style>
     <script>
         async function generateLinks() {
@@ -256,7 +304,24 @@
             tooltipContainer.style.display = 'block';
             statusElement.style.display = 'inline';
         }             
+        function calculateOffload() {
+            // Get the value from the input field
+            const footTraffic = parseFloat(document.getElementById('foot-traffic').value);
         
+            // Check if the input is valid
+            if (isNaN(footTraffic) || footTraffic < 0) {
+                alert("Please enter a valid positive number for foot traffic.");
+                return;
+            }
+        
+            // Calculate the estimated offload in GB
+            const estimatedOffloadMb = (footTraffic / 2) * 0.01; // Offload in MB
+            const estimatedOffloadGb = estimatedOffloadMb / 1024; // Convert MB to GB
+        
+            // Display the result
+            const resultElement = document.getElementById("offload-result");
+            resultElement.textContent = `Estimated Offload: ${estimatedOffloadGb.toFixed(2)} GB`;
+        }
     </script>
 </head>
 <body>
@@ -288,7 +353,15 @@
         </div>     
         <div class="tooltip" style="display: none;">
             Tool created by <a href="https://simeononsecurity.com">SimeonOnSecurity</a>
-        </div>    
+        </div>
+        <div class="offload-estimator">
+            <label for="foot-traffic">Enter Estimated Foot Traffic:</label>
+            <input type="number" id="foot-traffic" placeholder="Enter foot traffic" min="0" />
+            <button onclick="calculateOffload()">Estimate Offload</button>
+            <p id="offload-result"></p>
+        </div>
+</div>
+
     </div>
     
 </body>
