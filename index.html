@@ -1,14 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Location Search Tool</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <style>
+        #map {
+            outline: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            filter: brightness(0.6);
+            /* Darkens the map */
+            pointer-events: none;
+            /* Prevents all user interaction */
+        }
+
         /* Background gradient animation */
         @keyframes rotate {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         .gradient {
@@ -27,7 +48,11 @@
             transform: translate(-50%, -50%);
         }
 
-        @media (min-width: 720px) { .gradient { --size: 500px; } }
+        @media (min-width: 720px) {
+            .gradient {
+                --size: 500px;
+            }
+        }
 
         /* Styling for the main content and layout */
         body {
@@ -62,7 +87,8 @@
             color: #000;
         }
 
-        button, .link-button {
+        button,
+        .link-button {
             width: 100%;
             padding: 10px;
             background-color: #4CAF50;
@@ -78,11 +104,48 @@
             box-sizing: border-box;
         }
 
-        button:hover, .link-button:hover { background-color: #45a049; }
-        .links-section { margin-top: 20px; padding-top: 20px; border-top: 2px solid #ddd; }
+        button:hover,
+        .link-button:hover {
+            background-color: #45a049;
+        }
+
+        #suggestions {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            max-height: 150px;
+            overflow-y: auto;
+            display: none;
+            position: absolute;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 100%;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+        
+        #suggestions li {
+            padding: 10px;
+            cursor: pointer;
+            font-size: 1em;
+            color: #333;
+        }
+        
+        #suggestions li:hover {
+            background-color: #f0f0f0;
+        }        
+
+        .links-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #ddd;
+        }
 
         /* Tooltip and location type styling */
-        .tooltip, .fcc-tooltip, #traffic-tooltip {
+        .tooltip,
+        .fcc-tooltip,
+        #traffic-tooltip {
             font-size: 0.9em;
             color: #000;
             margin-top: 10px;
@@ -93,10 +156,23 @@
             display: none;
         }
 
-        .location-status { font-size: 1.2em; font-weight: bold; cursor: pointer; }
-        .location-status.residential { color: red; }
-        .location-status.business { color: green; }
-        .location-status.other { color: red; }
+        .location-status {
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .location-status.residential {
+            color: red;
+        }
+
+        .location-status.business {
+            color: green;
+        }
+
+        .location-status.other {
+            color: red;
+        }
 
         /* Offload Estimator Styling */
         .offload-estimator {
@@ -106,14 +182,14 @@
             border-radius: 8px;
             box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
         }
-        
+
         .offload-estimator label {
             font-weight: bold;
             display: block;
             margin-bottom: 5px;
             color: #333;
         }
-        
+
         .offload-estimator input[type="number"] {
             width: 100%;
             padding: 8px;
@@ -123,7 +199,7 @@
             font-size: 1em;
             box-sizing: border-box;
         }
-        
+
         .offload-estimator button {
             width: 100%;
             padding: 10px;
@@ -135,11 +211,11 @@
             cursor: pointer;
             margin-top: 5px;
         }
-        
+
         .offload-estimator button:hover {
             background-color: #45a049;
         }
-        
+
         #offload-result {
             margin-top: 10px;
             font-weight: bold;
@@ -147,51 +223,6 @@
         }
     </style>
     <script>
-        async function generateLinks() {
-            const address = document.getElementById('address').value;
-            if (!address) {
-                alert("Please enter an address.");
-                return;
-            }
-        
-            // Show tooltips and location status after button click
-            document.querySelector('.fcc-tooltip').style.display = 'block';
-            document.getElementById('traffic-tooltip').style.display = 'block';
-            document.getElementById('location-status').style.display = 'inline';
-        
-            const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`;
-            try {
-                const response = await fetch(geocodeUrl, {
-                    headers: { "User-Agent": "offload map" }
-                });
-                const data = await response.json();
-        
-                if (data.length > 0) {
-                    const { lat, lon } = data[0];
-        
-                    const fccLink = `https://broadbandmap.fcc.gov/provider-detail/mobile?version=dec2023&zoom=18.00&vlon=${lon}&vlat=${lat}&providers=130077_400_on%2C130403_400_on%2C131425_400_on&env=0&pct_cvg=80`;
-                    document.getElementById('fcc-link').innerHTML = `<a href="${fccLink}" target="_blank" class="link-button">Check FCC Broadband Map</a>`;
-        
-                    const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`;
-                    document.getElementById('google-maps-link').innerHTML = `<a href="${googleMapsLink}" target="_blank" class="link-button">Check on Google Maps</a>`;
-        
-                    const foursquareLink = `https://foursquare.com/explore?ll=${lat},${lon}`;
-                    document.getElementById('foursquare-link').innerHTML = `<a href="${foursquareLink}" target="_blank" class="link-button">Check on Foursquare</a>`;
-        
-                    const yelpLink = `https://www.yelp.com/search?find_loc=${lat},${lon}`;
-                    document.getElementById('yelp-link').innerHTML = `<a href="${yelpLink}" target="_blank" class="link-button">Check on Yelp</a>`;
-        
-                    // Determine and display the location type based on classification
-                    determineLocationType(lat, lon);
-                } else {
-                    document.getElementById('fcc-link').textContent = "Location not found.";
-                }
-            } catch (error) {
-                console.error("Error fetching geocode:", error);
-                document.getElementById('fcc-link').textContent = "Error fetching geocode data.";
-            }
-        }        
-
         async function determineLocationType(lat, lon) {
             const reverseGeocodeUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`;
             try {
@@ -230,43 +261,43 @@
                 "aerialway": ["yes"],
                 "military": ["yes", "base", "training_area"],
                 "man_made": ["bridge", "tower", "flagpole", "pier", "manhole", "mast", "works", "tunnel", "water_tower", "wastewater_plant", "storage_tank", "silo", "petroleum_well", "water_tower", "flare", "surveillance", "reservoir_covered", "chimney", "lighthouse", "water_works"],
-                "shop": ["money_lender", "convenience", "tattoo", "shoes", "funeral_directors", "mall", "clothes", "locksmith", "tobacco", "supermarket", "hunting", 
-                        "car_repair", "jewelry", "music", "mobile_phone", "houseware", "car", "car_parts", "department_store", "deli", "dry_cleaning", "laundry", 
-                        "fortune_teller", "chemist", "hearing_aids", "yes", "furniture", "newsagent", "hairdresser", "party", "car_rental", "beauty", "cannabis", 
-                        "country_store", "rental", "dental_supplies", "motorcycle", "bicycle", "lighting", "alcohol", "variety_store", "garden_centre", "trade", 
-                        "doityourself", "radiotechnics", "art", "motorcycle_repair", "stationery", "tyres", "boutique", "beverages", "health_food", "toys", 
-                        "sports", "bakery", "gift", "wholesale", "caravan", "electronics", "copyshop", "e-cigarette", "storage_rental", "erotic", "antiques", 
-                        "vacant", "cosmetics", "yes", "optician", "charity", "books", "kitchen", "online", "fuel", "repair", "paint", "hardware", "craft", "watches", "florist", "clothes;_wedding", "hairdresser_supply", "weapons"],
-                "highway": ["primary", "secondary", "trunk", "service", "motorway", "bus_stop", "pedestrian", "primary_link", "unclassified", "path", "track", 
-                            "motorway_junction", "services", "trunk_link", "steps", "turning_loop", "motorway_link", "toll_gantry"],
+                "shop": ["money_lender", "convenience", "tattoo", "shoes", "funeral_directors", "mall", "clothes", "locksmith", "tobacco", "supermarket", "hunting",
+                    "car_repair", "jewelry", "music", "mobile_phone", "houseware", "car", "car_parts", "department_store", "deli", "dry_cleaning", "laundry",
+                    "fortune_teller", "chemist", "hearing_aids", "yes", "furniture", "newsagent", "hairdresser", "party", "car_rental", "beauty", "cannabis",
+                    "country_store", "rental", "dental_supplies", "motorcycle", "bicycle", "lighting", "alcohol", "variety_store", "garden_centre", "trade",
+                    "doityourself", "radiotechnics", "art", "motorcycle_repair", "stationery", "tyres", "boutique", "beverages", "health_food", "toys",
+                    "sports", "bakery", "gift", "wholesale", "caravan", "electronics", "copyshop", "e-cigarette", "storage_rental", "erotic", "antiques",
+                    "vacant", "cosmetics", "yes", "optician", "charity", "books", "kitchen", "online", "fuel", "repair", "paint", "hardware", "craft", "watches", "florist", "clothes;_wedding", "hairdresser_supply", "weapons"],
+                "highway": ["primary", "secondary", "trunk", "service", "motorway", "bus_stop", "pedestrian", "primary_link", "unclassified", "path", "track",
+                    "motorway_junction", "services", "trunk_link", "steps", "turning_loop", "motorway_link", "toll_gantry"],
                 "tourism": ["attraction", "hotel", "artwork", "motel", "museum", "viewpoint", "picnic_site", "gallery", "apartment", "theme_park", "camp_site", "zoo", "aquarium", "caravan_site"],
                 "historic": ["factory", "district", "building", "park", "maritime", "memorial", "cemetery", "locomotive", "tomb", "ruins", "heritage"],
                 "craft": ["plumber", "brewery", "hvac", "insulation", "stonemason", "electronics_repair", "welder", "window_construction", "upholsterer"],
                 "healthcare": ["rehabilitation", "optometrist", "alternative", "nurse"],
-                "office": ["yes", "ngo", "tax_advisor", "estate_agent", "company", "coworking", "telecommunication", "government", "lawyer", "insurance", 
-                        "accountant", "association", "property_management", "financial", "therapist", "educational_institution", "consulting", "software", "it"],
-                "building": ["commercial", "church", "garage", "hospital", "hotel", "industrial", "office", "public", "retail", "school", "shop", "stadium", 
-                            "store", "train_station", "university", "mixed", "storage", "warehouse", "civic", "transportation", "government", "fire_station", "parking"],
+                "office": ["yes", "ngo", "tax_advisor", "estate_agent", "company", "coworking", "telecommunication", "government", "lawyer", "insurance",
+                    "accountant", "association", "property_management", "financial", "therapist", "educational_institution", "consulting", "software", "it"],
+                "building": ["commercial", "church", "garage", "hospital", "hotel", "industrial", "office", "public", "retail", "school", "shop", "stadium",
+                    "store", "train_station", "university", "mixed", "storage", "warehouse", "civic", "transportation", "government", "fire_station", "parking"],
                 "amenity": [
-                    "airport", "arts_centre", "atm", "auditorium", "bank", "bar", "bicycle_parking", "bicycle_rental", "brothel", "bureau_de_change", 
-                    "bus_station", "cafe", "car_rental", "car_wash", "casino", "cinema", "club", "college", "community_centre", "courthouse", 
-                    "crematorium", "dentist", "doctors", "driving_school", "embassy", "fast_food", "ferry_terminal", "fuel", "grave_yard", 
-                    "hall", "health_centre", "hospital", "hotel", "ice_cream", "library", "market", "marketplace", "nightclub", "office", 
-                    "park", "parking", "pharmacy", "place_of_worship", "police", "post_office", "pub", "reception_area", "restaurant", "sauna", 
-                    "shop", "shopping", "social_club", "studio", "supermarket", "taxi", "theatre", "townhall", "veterinary", "youth_centre", 
-                    "kindergarten", "nursery", "nursing_home", "preschool", "retirement_home", "school", "university", "waste_disposal", "post_box", 
-                    "clinic", "conference_centre", "food_court", "social_centre", "waste_basket", "parking_entrance", "car_wash", "college", 
-                    "bicycle_parking", "bus_station", "social_centre", "casino", "conference_centre", "food_court", "marketplace", "fast_food", 
-                    "dentist", "school", "waste_disposal", "restaurant", "university", "arts_centre", "bar", "pharmacy", "place_of_worship", 
-                    "bench", "parking", "fire_station", "loading_dock", "parking_space", "bicycle_repair_station", "toilets", "shelter", 
-                    "animal_boarding", "childcare", "social_facility", "recycling", "fountain", "research_institute", "animal_shelter", 
+                    "airport", "arts_centre", "atm", "auditorium", "bank", "bar", "bicycle_parking", "bicycle_rental", "brothel", "bureau_de_change",
+                    "bus_station", "cafe", "car_rental", "car_wash", "casino", "cinema", "club", "college", "community_centre", "courthouse",
+                    "crematorium", "dentist", "doctors", "driving_school", "embassy", "fast_food", "ferry_terminal", "fuel", "grave_yard",
+                    "hall", "health_centre", "hospital", "hotel", "ice_cream", "library", "market", "marketplace", "nightclub", "office",
+                    "park", "parking", "pharmacy", "place_of_worship", "police", "post_office", "pub", "reception_area", "restaurant", "sauna",
+                    "shop", "shopping", "social_club", "studio", "supermarket", "taxi", "theatre", "townhall", "veterinary", "youth_centre",
+                    "kindergarten", "nursery", "nursing_home", "preschool", "retirement_home", "school", "university", "waste_disposal", "post_box",
+                    "clinic", "conference_centre", "food_court", "social_centre", "waste_basket", "parking_entrance", "car_wash", "college",
+                    "bicycle_parking", "bus_station", "social_centre", "casino", "conference_centre", "food_court", "marketplace", "fast_food",
+                    "dentist", "school", "waste_disposal", "restaurant", "university", "arts_centre", "bar", "pharmacy", "place_of_worship",
+                    "bench", "parking", "fire_station", "loading_dock", "parking_space", "bicycle_repair_station", "toilets", "shelter",
+                    "animal_boarding", "childcare", "social_facility", "recycling", "fountain", "research_institute", "animal_shelter",
                     "telephone", "vending_machine", "lifeguard", "drinking_water", "reception_desk", "paint", "post_depot", "money_transfer", "events_venue", "prison", "charging_station", "shower"],
                 "landuse": ["commercial", "construction", "industrial"],
                 "aeroway": ["terminal", "aerodrome", "hangar", "apron", "holding_position", "runway", "windsock", "navigationaid"],
                 "railway": ["platform", "signal_box", "stop", "station", "junction", "subway_entrance", "yard", "service_station"],
-                "leisure": ["fitness_centre", "playground", "pitch", "common", "golf_course", "swimming_pool", "sports_centre", "dog_park", "outdoor_seating", 
-                            "marina", "nature_reserve", "stadium", "village_green", "psychic", "picnic_table", "disc_golf_course", "bowling_alley", "track", 
-                            "recreation_ground", "slipway", "ice_rink", "water_park", "amusement_arcade", "trampoline_park", "resort", "swimming_area"],
+                "leisure": ["fitness_centre", "playground", "pitch", "common", "golf_course", "swimming_pool", "sports_centre", "dog_park", "outdoor_seating",
+                    "marina", "nature_reserve", "stadium", "village_green", "psychic", "picnic_table", "disc_golf_course", "bowling_alley", "track",
+                    "recreation_ground", "slipway", "ice_rink", "water_park", "amusement_arcade", "trampoline_park", "resort", "swimming_area"],
                 "boundary": ["administrative"],
                 "junction": ["yes"],
                 "emergency": ["phone", "assembly_point", "lifeguard", "ambulance_station", "psap"],
@@ -285,7 +316,7 @@
         function displayLocationType(locationType) {
             const statusElement = document.getElementById("location-status");
             const tooltipContainer = statusElement.parentElement;  // The container for the tooltip
-        
+
             if (locationType === "Business") {
                 statusElement.textContent = "Business";
                 statusElement.className = "location-status business";
@@ -299,48 +330,178 @@
                 statusElement.className = "location-status other";
                 statusElement.title = "This location classification hasn’t been determined yet";
             }
-        
+
             // Make the status element and its tooltip container visible
             tooltipContainer.style.display = 'block';
             statusElement.style.display = 'inline';
-        } 
-        
+        }
+
         function calculateOffload() {
             // Get the value from the input field
             const footTraffic = parseFloat(document.getElementById('foot-traffic').value);
-        
+
             // Check if the input is valid
             if (isNaN(footTraffic) || footTraffic < 0) {
                 alert("Please enter a valid positive number for foot traffic.");
                 return;
             }
-        
+
             // Calculate the minimum and maximum estimated offload in GB
             const minEstimatedOffloadMB = (footTraffic / 2) * 0.1; // Minimum offload in megabits (Mb)
             const maxEstimatedOffloadMB = (footTraffic / 2) * 1.0; // Maximum offload in megabits (Mb)
-        
+
             // Convert both to megabytes (MB) and then to gigabytes (GB)
             const minEstimatedOffloadGB = minEstimatedOffloadMB / 1024;
             const maxEstimatedOffloadGB = maxEstimatedOffloadMB / 1024;
-        
+
             // Display the result as a range
             const resultElement = document.getElementById("offload-result");
             resultElement.textContent = `Estimated Offload: ${minEstimatedOffloadGB.toFixed(2)} - ${maxEstimatedOffloadGB.toFixed(2)} GB`;
         }
+
+        const map = L.map('map').setView([0, 0], 2); // Initial zoomed-out view
+
+        // Add a dark map layer
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 19,
+        }).addTo(map);
+
+        // Function to zoom into coordinates
+        function zoomToLocation(lat, lon) {
+            map.setView([lat, lon], 14); // Adjust zoom level as needed
+        }
+
+        async function showSuggestions(query) {
+            const suggestionsList = document.getElementById('suggestions');
+            if (!query) {
+                suggestionsList.style.display = 'none';
+                return;
+            }
+        
+            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&addressdetails=1&limit=5`);
+            const data = await response.json();
+        
+            suggestionsList.innerHTML = '';
+            if (data.length > 0) {
+                data.forEach(place => {
+                    const suggestionItem = document.createElement('li');
+                    suggestionItem.textContent = place.display_name;
+                    suggestionItem.onclick = () => selectSuggestion(place.display_name);
+                    suggestionsList.appendChild(suggestionItem);
+                });
+                suggestionsList.style.display = 'block';
+            } else {
+                suggestionsList.style.display = 'none';
+            }
+        }
+        
+        function selectSuggestion(address) {
+            document.getElementById('address').value = address;
+            document.getElementById('suggestions').style.display = 'none';
+        }
+        
     </script>
 </head>
+
 <body>
-    <div class="gradient"></div>
+    <div id="map"></div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize the Leaflet map centered on the United States with interaction disabled
+            const map = L.map('map', {
+                center: [37.0902, -95.7129], // Initial center on the U.S.
+                zoom: 4,                    // Initial zoom level
+                scrollWheelZoom: false,      // Disable scroll zoom
+                dragging: false,             // Disable dragging
+                doubleClickZoom: false,      // Disable double-click zoom
+                zoomControl: false,          // Disable zoom control buttons
+                boxZoom: false,              // Disable box zoom
+                keyboard: false,             // Disable keyboard controls
+                touchZoom: false,            // Disable touch zoom
+            });
+
+            // Add a dark tile layer to the map
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                maxZoom: 19,
+                minZoom: 4 // Prevents reloading tiles by limiting zoom range
+            }).addTo(map);
+
+            // Function to smoothly zoom to specified coordinates
+            function zoomToLocation(lat, lon) {
+                map.flyTo([lat, lon], 14, { duration: 3, easeLinearity: 0.25 }); // Smooth transition to location
+            }
+
+            // Generate links and transition to location
+            async function generateLinks() {
+                const address = document.getElementById('address').value;
+                if (!address) {
+                    alert("Please enter an address.");
+                    return;
+                }
+    
+                // Show tooltips and location status after button click
+                document.querySelector('.fcc-tooltip').style.display = 'block';
+                document.getElementById('traffic-tooltip').style.display = 'block';
+                document.getElementById('location-status').style.display = 'inline';
+    
+                const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`;
+                try {
+                    const response = await fetch(geocodeUrl, {
+                        headers: { "User-Agent": "offload map" }
+                    });
+                    const data = await response.json();
+    
+                    if (data.length > 0) {
+                        const { lat, lon } = data[0];
+    
+                        // Fly to the specified location with a smooth zoom transition
+                        zoomToLocation(lat, lon);
+
+                        const fccLink = `https://broadbandmap.fcc.gov/provider-detail/mobile?version=dec2023&zoom=18.00&vlon=${lon}&vlat=${lat}&providers=130077_400_on%2C130403_400_on%2C131425_400_on&env=0&pct_cvg=80`;
+                        document.getElementById('fcc-link').innerHTML = `<a href="${fccLink}" target="_blank" class="link-button">Check FCC Broadband Map</a>`;
+    
+                        const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`;
+                        document.getElementById('google-maps-link').innerHTML = `<a href="${googleMapsLink}" target="_blank" class="link-button">Check on Google Maps</a>`;
+    
+                        const foursquareLink = `https://foursquare.com/explore?ll=${lat},${lon}`;
+                        document.getElementById('foursquare-link').innerHTML = `<a href="${foursquareLink}" target="_blank" class="link-button">Check on Foursquare</a>`;
+    
+                        const yelpLink = `https://www.yelp.com/search?find_loc=${lat},${lon}`;
+                        document.getElementById('yelp-link').innerHTML = `<a href="${yelpLink}" target="_blank" class="link-button">Check on Yelp</a>`;
+    
+                        // Determine and display the location type based on classification
+                        determineLocationType(lat, lon);
+                    } else {
+                        document.getElementById('fcc-link').textContent = "Location not found.";
+                    }
+                } catch (error) {
+                    console.error("Error fetching geocode:", error);
+                    document.getElementById('fcc-link').textContent = "Error fetching geocode data.";
+                }
+            }    
+
+            // Expose functions globally for button actions
+            window.zoomToLocation = zoomToLocation;
+            window.generateLinks = generateLinks;
+        });
+    </script>
 
     <div class="container">
         <h1>Location Search Tool</h1>
         <label for="address">Enter Address:</label>
-        <input type="text" id="address" placeholder="Enter an address">
+        <input type="text" id="address" placeholder="Enter an address" oninput="showSuggestions(this.value)">
+        <div style="position: relative; width: 100%;">
+            <ul id="suggestions"></ul>
+        </div>        
+        
         <button onclick="generateLinks()">Generate Links</button>
 
         <div class="links-section">
             <div id="fcc-link"></div>
-            <div class="fcc-tooltip">Any hex that isn’t colored is likely to have unlimited offload; any colored hex will offload only if there is congestion.</div>
+            <div class="fcc-tooltip">Any hex that isn’t colored is likely to have unlimited offload; any colored hex
+                will offload only if there is congestion.</div>
             <div id="google-maps-link"></div>
             <div id="foursquare-link"></div>
             <div id="yelp-link"></div>
@@ -348,29 +509,34 @@
 
         <!-- Display Location Classification Status with Tooltip -->
         <div class="tooltip" id="traffic-tooltip">
-            To gauge foot traffic, view businesses within 100-300 feet of this location on Google Maps, Foursquare, and Yelp. For more metrics, visit <a href="https://placer.ai" target="_blank">placer.ai</a> (no automated searches available).
+            To gauge foot traffic, view businesses within 100-300 feet of this location on Google Maps, Foursquare, and
+            Yelp. For more metrics, visit <a href="https://placer.ai" target="_blank">placer.ai</a> (no automated
+            searches available).
         </div>
-        <div class="tooltip" style="display: none;">  <!-- Hide tooltip initially -->
-            Location Type: 
+        <div class="tooltip" style="display: none;"> <!-- Hide tooltip initially -->
+            Location Type:
             <span id="location-status" class="location-status" style="display: none;">
                 Unknown
             </span>
-        </div>     
+        </div>
         <div class="tooltip" style="display: none;">
             Tool created by <a href="https://simeononsecurity.com">SimeonOnSecurity</a>
         </div>
         <div class="offload-estimator">
             <label for="foot-traffic">Enter Estimated Foot Traffic:</label>
-            <input type="number" id="foot-traffic" placeholder="Enter the number of users in a given interval" min="0" />
+            <input type="number" id="foot-traffic" placeholder="Enter the number of users in a given interval"
+                min="0" />
             <button onclick="calculateOffload()">Estimate Offload</button>
             <div class="tooltip" style="display: block;">
-            This calculator produces estimates of offload based on network averages across all the networks for average dwell time. If the dwell time is higher than the average location (5-30 Minutes), then these numbers will be perportionally lower than what you should expect.
-            </div>   
+                This calculator produces estimates of offload based on network averages across all the networks for
+                average dwell time. If the dwell time is higher than the average location (5-30 Minutes), then these
+                numbers will be perportionally lower than what you should expect.
+            </div>
             <p id="offload-result"></p>
         </div>
-</div>
+    </div>
 
     </div>
-    
 </body>
+
 </html>
