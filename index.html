@@ -242,17 +242,35 @@
         }
     </style>
     <script>
+        // Generate or retrieve a unique identifier for the session
+        function getSessionId() {
+            // Check if a session ID already exists
+            let sessionId = sessionStorage.getItem("sessionId");
+            if (!sessionId) {
+                // If not, generate a new one and store it
+                sessionId = `session-${Math.random().toString(36).substr(2, 9)}`;
+                sessionStorage.setItem("sessionId", sessionId);
+            }
+            return sessionId;
+        }
+        
         async function determineLocationType(lat, lon) {
             const reverseGeocodeUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`;
+            
+            // Get the unique session ID for the header
+            const sessionId = getSessionId();
+        
             try {
                 const response = await fetch(reverseGeocodeUrl, {
-                    headers: { "User-Agent": "offload map" }
+                    headers: { 
+                        "User-Agent": `offload map - ${sessionId}`
+                    }
                 });
                 const locationData = await response.json();
-
+        
                 const className = locationData.class || "";
                 const typeName = locationData.type || "";
-
+        
                 const locationType = classifyLocation(className, typeName);
                 displayLocationType(locationType);
             } catch (error) {
@@ -397,20 +415,35 @@
                 suggestionsList.style.display = 'none';
                 return;
             }
-
-            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&addressdetails=1&limit=5`);
-            const data = await response.json();
-
-            suggestionsList.innerHTML = '';
-            if (data.length > 0) {
-                data.forEach(place => {
-                    const suggestionItem = document.createElement('li');
-                    suggestionItem.textContent = place.display_name;
-                    suggestionItem.onclick = () => selectSuggestion(place.display_name);
-                    suggestionsList.appendChild(suggestionItem);
-                });
-                suggestionsList.style.display = 'block';
-            } else {
+        
+            // Get the unique session ID for the header
+            const sessionId = getSessionId();
+        
+            try {
+                const response = await fetch(
+                    `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&addressdetails=1&limit=5`, 
+                    {
+                        headers: {
+                            "User-Agent": `offload map - ${sessionId}`
+                        }
+                    }
+                );
+                const data = await response.json();
+        
+                suggestionsList.innerHTML = '';
+                if (data.length > 0) {
+                    data.forEach(place => {
+                        const suggestionItem = document.createElement('li');
+                        suggestionItem.textContent = place.display_name;
+                        suggestionItem.onclick = () => selectSuggestion(place.display_name);
+                        suggestionsList.appendChild(suggestionItem);
+                    });
+                    suggestionsList.style.display = 'block';
+                } else {
+                    suggestionsList.style.display = 'none';
+                }
+            } catch (error) {
+                console.error("Error fetching suggestions:", error);
                 suggestionsList.style.display = 'none';
             }
         }
