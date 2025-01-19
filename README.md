@@ -1,5 +1,3 @@
----
-
 ## Location Search Tool
 
 This static website allows users to input an address and quickly access essential information about the selected location. Using an intuitive interface, users can perform location-based searches and access the following features:
