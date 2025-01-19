@@ -485,54 +485,103 @@
                 map.flyTo([lat, lon], 14, { duration: 3, easeLinearity: 0.25 }); // Smooth transition to location
             }
 
-            // Generate links and transition to location
             async function generateLinks() {
-                const address = document.getElementById('address').value;
-                if (!address) {
-                    alert("Please enter an address.");
-                    return;
+            const address = document.getElementById('address').value;
+            if (!address) {
+                alert("Please enter an address.");
+                return;
+            }
+    
+            const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`;
+            try {
+                const response = await fetch(geocodeUrl, {
+                    headers: { "User-Agent": "offload map" }
+                });
+                const data = await response.json();
+    
+                if (data.length > 0) {
+                    const { lat, lon } = data[0];
+    
+                    // Fly to the specified location with a smooth zoom transition
+                    zoomToLocation(lat, lon);
+    
+                    const fccLink = `https://broadbandmap.fcc.gov/provider-detail/mobile?version=dec2023&zoom=18.00&vlon=${lon}&vlat=${lat}&providers=130077_400_on%2C130403_400_on%2C131425_400_on&env=0&pct_cvg=80`;
+                    document.getElementById('fcc-link').innerHTML = `<a href="${fccLink}" target="_blank" class="link-button">Check FCC Broadband Map</a>`;
+    
+                    const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`;
+                    document.getElementById('google-maps-link').innerHTML = `<a href="${googleMapsLink}" target="_blank" class="link-button">Check on Google Maps</a>`;
+    
+                    const foursquareLink = `https://foursquare.com/explore?ll=${lat},${lon}`;
+                    document.getElementById('foursquare-link').innerHTML = `<a href="${foursquareLink}" target="_blank" class="link-button">Check on Foursquare</a>`;
+    
+                    const yelpLink = `https://www.yelp.com/search?find_loc=${lat},${lon}`;
+                    document.getElementById('yelp-link').innerHTML = `<a href="${yelpLink}" target="_blank" class="link-button">Check on Yelp</a>`;
+    
+                    // Determine and display the location type based on classification
+                    determineLocationType(lat, lon);
+    
+                    // Fetch and display cell tower data
+                    await getCellTowerData(lat, lon);
+                } else {
+                    document.getElementById('fcc-link').textContent = "Location not found.";
                 }
+            } catch (error) {
+                console.error("Error fetching geocode:", error);
+                document.getElementById('fcc-link').textContent = "Error fetching geocode data.";
+            }
+        }
 
-                // Show tooltips and location status after button click
-                document.querySelector('.fcc-tooltip').style.display = 'block';
-                document.getElementById('traffic-tooltip').style.display = 'block';
-                document.getElementById('location-status').style.display = 'inline';
+        async function getCellTowerData(lat, lon) {
+            const apiKey = '{$apikey}';
+            const bbox = `${lat - 0.01},${lon - 0.01},${lat + 0.01},${lon + 0.01}`; // Small bounding box around the address
 
-                const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`;
+            const networks = [
+                { name: 'AT&T', mcc: 310, mnc: 410 },
+                { name: 'T-Mobile', mcc: 310, mnc: 260 },
+                { name: 'Verizon', mcc: 311, mnc: 480 },
+            ];
+
+            let cellTowerSummary = '<h3>Cellular Coverage Summary:</h3>';
+
+            for (const network of networks) {
+                const coverageUrl = `https://opencellid.org/cell/getInArea?key=${apiKey}&BBOX=${bbox}&mcc=${network.mcc}&mnc=${network.mnc}&format=json`;
                 try {
-                    const response = await fetch(geocodeUrl, {
-                        headers: { "User-Agent": "offload map" }
-                    });
-                    const data = await response.json();
+                    const coverageResponse = await fetch(coverageUrl);
+                    const coverageData = await coverageResponse.json();
 
-                    if (data.length > 0) {
-                        const { lat, lon } = data[0];
+                    let towerColor = ''; // Default text color
 
-                        // Fly to the specified location with a smooth zoom transition
-                        zoomToLocation(lat, lon);
+                    if (coverageData.cells && coverageData.cells.length > 0) {
+                        const totalSignal = coverageData.cells.reduce((sum, cell) => {
+                            return sum + (cell.averageSignalStrength ? parseFloat(cell.averageSignalStrength) : 0);
+                        }, 0);
 
-                        const fccLink = `https://broadbandmap.fcc.gov/provider-detail/mobile?version=dec2023&zoom=18.00&vlon=${lon}&vlat=${lat}&providers=130077_400_on%2C130403_400_on%2C131425_400_on&env=0&pct_cvg=80`;
-                        document.getElementById('fcc-link').innerHTML = `<a href="${fccLink}" target="_blank" class="link-button">Check FCC Broadband Map</a>`;
+                        const averageSignal = totalSignal / coverageData.cells.length;
 
-                        const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`;
-                        document.getElementById('google-maps-link').innerHTML = `<a href="${googleMapsLink}" target="_blank" class="link-button">Check on Google Maps</a>`;
+                        // Determine text color based on the number of towers
+                        if (coverageData.cells.length > 1) {
+                            towerColor = 'red';
+                        } else if (coverageData.cells.length <= 1) {
+                            towerColor = 'green';
+                        }
 
-                        const foursquareLink = `https://foursquare.com/explore?ll=${lat},${lon}`;
-                        document.getElementById('foursquare-link').innerHTML = `<a href="${foursquareLink}" target="_blank" class="link-button">Check on Foursquare</a>`;
-
-                        const yelpLink = `https://www.yelp.com/search?find_loc=${lat},${lon}`;
-                        document.getElementById('yelp-link').innerHTML = `<a href="${yelpLink}" target="_blank" class="link-button">Check on Yelp</a>`;
-
-                        // Determine and display the location type based on classification
-                        determineLocationType(lat, lon);
+                        cellTowerSummary += `<p style="color:${towerColor};"><strong>${network.name}:</strong> ${coverageData.cells.length} cell tower(s) found.`;
+                        cellTowerSummary += averageSignal
+                            ? ` Average signal strength: ${averageSignal.toFixed(2)} dBm.</p>`
+                            : ` </p>`;
                     } else {
-                        document.getElementById('fcc-link').textContent = "Location not found.";
+                        towerColor = 'green'; // No towers found, default to green
+                        cellTowerSummary += `<p style="color:${towerColor};"><strong>${network.name}:</strong> No cell towers found in the area.</p>`;
                     }
                 } catch (error) {
-                    console.error("Error fetching geocode:", error);
-                    document.getElementById('fcc-link').textContent = "Error fetching geocode data.";
+                    console.error(`Error fetching data for ${network.name}:`, error);
+                    cellTowerSummary += `<p><strong>${network.name}:</strong> Unable to retrieve data.</p>`;
                 }
             }
+
+            document.getElementById('cell-tower-summary').innerHTML = cellTowerSummary;
+            document.getElementById('cell-tower-summary').style.display = 'block';
+        }
 
             // Expose functions globally for button actions
             window.zoomToLocation = zoomToLocation;
@@ -550,9 +599,16 @@
 
         <button onclick="generateLinks()">Generate Links</button>
 
+        <div id="cell-tower-summary" style="display:none; margin-top: 20px; padding: 15px; background-color: #2a2a2a; border-radius: 8px; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3); color: #f1f1f1;"></div>
+        <div class="tooltip" style="display: none;"> <!-- Hide tooltip initially -->
+            Location Type:
+            <span id="location-status" class="location-status" style="display: none;">
+                Unknown
+            </span>
+        </div>
         <div class="links-section">
             <div id="fcc-link"></div>
-            <div class="fcc-tooltip">Any hex that isn’t colored is likely to have unlimited offload; any colored hex
+            <div class="fcc-tooltip">Any hex that isn't colored is likely to have unlimited offload; any colored hex
                 will offload only if there is congestion.</div>
             <div id="google-maps-link"></div>
             <div id="foursquare-link"></div>
@@ -565,15 +621,7 @@
             Yelp. For more metrics, visit <a href="https://placer.ai" target="_blank">placer.ai</a> (no automated
             searches available).
         </div>
-        <div class="tooltip" style="display: none;"> <!-- Hide tooltip initially -->
-            Location Type:
-            <span id="location-status" class="location-status" style="display: none;">
-                Unknown
-            </span>
-        </div>
-        <div class="tooltip" style="display: none;">
-            Tool created by <a href="https://simeononsecurity.com">SimeonOnSecurity</a>
-        </div>
+
         <div class="offload-estimator">
             <label for="foot-traffic">Enter Estimated Foot Traffic:</label>
             <input type="number" id="foot-traffic" placeholder="Enter the number of users in a given interval"
@@ -585,6 +633,9 @@
                 numbers will be perportionally lower than what you should expect.
             </div>
             <p id="offload-result"></p>
+        </div>
+        <div class="tooltip" style="display: none;">
+            Tool created by <a href="https://simeononsecurity.com">SimeonOnSecurity</a>
         </div>
     </div>
 
