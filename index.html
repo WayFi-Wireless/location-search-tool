@@ -421,7 +421,7 @@
         
             try {
                 const response = await fetch(
-                    `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&addressdetails=1&limit=5`, 
+                    `https://nominatim-proxy.russ-162.workers.dev/search?format=json&q=${encodeURIComponent(query)}&addressdetails=1&limit=5`, 
                     {
                         headers: {
                             "User-Agent": `offload map - ${sessionId}`
@@ -492,7 +492,7 @@
                 return;
             }
     
-            const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`;
+            const geocodeUrl = `https://nominatim-proxy.russ-162.workers.dev/search?format=json&q=${encodeURIComponent(address)}`;
             try {
                 const response = await fetch(geocodeUrl, {
                     headers: { "User-Agent": "offload map" }
