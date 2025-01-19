@@ -501,39 +501,11 @@
             }
 
             async function generateLinks() {
-                const address = document.getElementById('address').value;
-                if (!address) {
-                    alert("Please enter an address.");
-                    return;
-                }
-            
-                const geocodeUrl = `https://nominatim-proxy.russ-162.workers.dev/search?format=json&q=${encodeURIComponent(address)}`;
-                try {
-                    const response = await fetch(geocodeUrl, {
-                        headers: { "User-Agent": "offload map" }
-                    });
-                    const data = await response.json();
-            
-                    if (data.length > 0) {
-                        const { lat, lon } = data[0];
-            
-                        // Fly to location
-                        zoomToLocation(lat, lon);
-            
-                        // Show all tooltips
-                        const tooltips = document.querySelectorAll('.tooltip');
-                        tooltips.forEach(tooltip => {
-                            tooltip.style.display = 'block';
-                        });
-                    } else {
-                        document.getElementById('fcc-link').textContent = "Location not found.";
-                    }
-                } catch (error) {
-                    console.error("Error fetching geocode:", error);
-                    document.getElementById('fcc-link').textContent = "Error fetching geocode data.";
-                }
+            const address = document.getElementById('address').value;
+            if (!address) {
+                alert("Please enter an address.");
+                return;
             }
-
     
             const geocodeUrl = `https://nominatim-proxy.russ-162.workers.dev/search?format=json&q=${encodeURIComponent(address)}`;
             try {
