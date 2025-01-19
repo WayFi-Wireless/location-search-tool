@@ -33,9 +33,9 @@ jobs:
         uses: actions/checkout@v4
 
       #Cheap hack for the free api key not to be in the github source code. We know it'll be on the public page source code.
-      - name: Replace API key placeholder
-        run: |
-          sed -i "s/{$inputapikey}/${{ secrets.apikey }}/g" index.html
+      # - name: Replace API key placeholder
+      #   run: |
+      #     sed -i "s/{$inputapikey}/${{ secrets.apikey }}/g" index.html
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
