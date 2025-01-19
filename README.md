@@ -14,8 +14,7 @@ This static website allows users to input an address and quickly access essentia
 
 ### Usage
 
-Simply clone the repository, open `index.html` in a browser, and enter an address to explore the features. This tool is designed to be user-friendly and accessible on any platform with browser support.
-- You will need to replace {$inputapikey} with your opencellmap api key for the cell tower lookup function to work.
+We're using custom cloudflare workers to perform the api requests and avoid cors errors and timeouts from the api providers. You won't be able to rehost this. See the original dev below.
 
 ---
 
