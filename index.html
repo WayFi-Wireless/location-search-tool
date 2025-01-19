@@ -532,7 +532,7 @@
         }
 
         async function getCellTowerData(lat, lon) {
-            const apiKey = '{$apikey}';
+            const apiKey = '{$inputapikey}';
             const bbox = `${lat - 0.01},${lon - 0.01},${lat + 0.01},${lon + 0.01}`; // Small bounding box around the address
 
             const networks = [
