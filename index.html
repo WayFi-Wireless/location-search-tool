@@ -537,7 +537,8 @@
         });
 
         async function getCellTowerData(lat, lon) {
-            const apiKey = '{$inputapikey}';
+            // This is a freeapikey on a free tool from a free resource. Not really concerned about it...
+            const apiKey = 'pk.508d64a95e3b84157d216043f087cb1f';
             const bbox = `${lat - 0.01},${lon - 0.01},${lat + 0.01},${lon + 0.01}`; // Small bounding box around the address
 
             const networks = [
