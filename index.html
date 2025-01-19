@@ -552,40 +552,37 @@
         });
 
         async function getCellTowerData(lat, lon) {
-            // This is a freeapikey on a free tool from a free resource. Not really concerned about it...
-            const apiKey = 'pk.508d64a95e3b84157d216043f087cb1f';
-            const bbox = `${lat - 0.01},${lon - 0.01},${lat + 0.01},${lon + 0.01}`; // Small bounding box around the address
-
+            const bbox = `${lat - 0.01},${lon - 0.01},${lat + 0.01},${lon + 0.01}`;
             const networks = [
                 { name: 'AT&T', mcc: 310, mnc: 410 },
                 { name: 'T-Mobile', mcc: 310, mnc: 260 },
                 { name: 'Verizon', mcc: 311, mnc: 480 },
             ];
-
+        
             let cellTowerSummary = '<h3>Cellular Coverage Summary:</h3>';
-
+        
             for (const network of networks) {
-                const coverageUrl = `https://opencellid.org/cell/getInArea?key=${apiKey}&BBOX=${bbox}&mcc=${network.mcc}&mnc=${network.mnc}&format=json`;
+                const coverageUrl = `https://opencellid.russ-162.workers.dev?BBOX=${bbox}&mcc=${network.mcc}&mnc=${network.mnc}&format=json`;
                 try {
                     const coverageResponse = await fetch(coverageUrl);
                     const coverageData = await coverageResponse.json();
-
+        
                     let towerColor = ''; // Default text color
-
+        
                     if (coverageData.cells && coverageData.cells.length > 0) {
                         const totalSignal = coverageData.cells.reduce((sum, cell) => {
                             return sum + (cell.averageSignalStrength ? parseFloat(cell.averageSignalStrength) : 0);
                         }, 0);
-
+        
                         const averageSignal = totalSignal / coverageData.cells.length;
-
+        
                         // Determine text color based on the number of towers
                         if (coverageData.cells.length > 1) {
                             towerColor = 'red';
                         } else if (coverageData.cells.length <= 1) {
                             towerColor = 'green';
                         }
-
+        
                         cellTowerSummary += `<p style="color:${towerColor};"><strong>${network.name}:</strong> ${coverageData.cells.length} cell tower(s) found.`;
                         cellTowerSummary += averageSignal
                             ? ` Average signal strength: ${averageSignal.toFixed(2)} dBm.</p>`
@@ -599,10 +596,11 @@
                     cellTowerSummary += `<p><strong>${network.name}:</strong> Unable to retrieve data.</p>`;
                 }
             }
-
+        
             document.getElementById('cell-tower-summary').innerHTML = cellTowerSummary;
             document.getElementById('cell-tower-summary').style.display = 'block';
         }
+
     </script>
 
     <div class="container">
