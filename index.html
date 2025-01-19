@@ -255,7 +255,7 @@
         }
         
         async function determineLocationType(lat, lon) {
-            const reverseGeocodeUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`;
+            const reverseGeocodeUrl = `https://nominatim-proxy.russ-162.workers.dev/reverse?format=json&lat=${lat}&lon=${lon}`;
             
             // Get the unique session ID for the header
             const sessionId = getSessionId();
