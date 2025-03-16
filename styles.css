@@ -1,0 +1,268 @@
+/* Map styling */
+#map {
+    outline: none;
+    position: fixed; /* Keep map fixed for scrolling content */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    filter: brightness(0.5);
+    pointer-events: none;
+    z-index: -1; /* Push map to the background */
+}
+
+/* Background gradient animation */
+@keyframes rotate {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.gradient {
+    --size: 750px;
+    --speed: 50s;
+    --easing: cubic-bezier(0.8, 0.2, 0.2, 0.8);
+    width: var(--size);
+    height: var(--size);
+    filter: blur(calc(var(--size) / 5));
+    background-image: linear-gradient(hsl(222, 84%, 40%), hsl(200, 60%, 30%));
+    animation: rotate var(--speed) var(--easing) alternate infinite;
+    border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+@media (min-width: 720px) {
+    .gradient {
+        --size: 500px;
+    }
+}
+
+/* Main layout and content styling */
+body {
+    background-color: #0b1624;
+    position: relative;
+    display: flex;
+    flex-direction: column; /* Stack content vertically */
+    align-items: center;
+    height: auto;
+    min-height: 100vh;
+    overflow-x: hidden; /* Prevent horizontal scrolling */
+    overflow-y: auto; /* Allow vertical scrolling */
+    color: #f1f1f1;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.container {
+    text-align: center;
+    max-width: 400px;
+    padding: 20px;
+    background-color: rgba(30, 30, 30, 0.9);
+    border-radius: 8px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3);
+    z-index: 1;
+    margin: 20px auto; /* Center container and add spacing */
+}
+
+/* Input field styling */
+input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border: 1px solid #3b3b3b;
+    border-radius: 6px;
+    font-size: 1em;
+    box-sizing: border-box;
+    color: #f1f1f1;
+    background-color: #1a1a1a;
+}
+
+/* Button styling */
+button,
+.link-button {
+    width: 100%;
+    padding: 12px;
+    margin: 5px 0;
+    background-color: #007BFF;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 1em;
+    cursor: pointer;
+    text-align: center;
+    box-sizing: border-box;
+    display: inline-block;
+}
+
+button:hover,
+.link-button:hover {
+    background-color: #0056b3;
+}
+
+/* Suggestions dropdown styling */
+#suggestions {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    max-height: 150px;
+    overflow-y: auto;
+    display: none;
+    position: absolute;
+    background-color: #2a2a2a;
+    border: 1px solid #3b3b3b;
+    border-radius: 6px;
+    width: 100%;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+}
+
+#suggestions li {
+    padding: 10px;
+    cursor: pointer;
+    font-size: 1em;
+    color: #f1f1f1;
+}
+
+#suggestions li:hover {
+    background-color: #333;
+}
+
+/* Links section styling */
+.links-section div {
+    margin: 8px 0;
+}
+
+.links-section {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 2px solid #3b3b3b;
+}
+
+/* Tooltip and location type styling */
+.tooltip,
+.fcc-tooltip,
+#traffic-tooltip {
+    font-size: 0.95em;
+    color: #f1f1f1;
+    background-color: #333;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #3b3b3b;
+    display: none;
+}
+
+/* Hyperlink styling */
+a {
+    color: #0056b3;
+    text-decoration: none;
+}
+
+a:hover {
+    color: #333;
+}
+
+/* Location status styling */
+.location-status {
+    font-size: 1.2em;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.location-status.residential {
+    color: #e74c3c;
+}
+
+.location-status.business {
+    color: #27ae60;
+}
+
+.location-status.other {
+    color: #f39c12;
+}
+
+/* Offload estimator styling */
+.offload-estimator {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #2a2a2a;
+    border-radius: 8px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3);
+    width: 100%; /* Ensure it adapts to screen size */
+    max-width: 400px;
+    box-sizing: border-box;
+}
+
+.offload-estimator label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
+    color: #f1f1f1;
+}
+
+.offload-estimator input[type="number"],
+.offload-estimator select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #3b3b3b;
+    border-radius: 6px;
+    font-size: 1em;
+    box-sizing: border-box;
+    background-color: #1a1a1a;
+    color: #f1f1f1;
+}
+
+.offload-estimator button {
+    width: 100%;
+    padding: 12px;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 1em;
+    cursor: pointer;
+    margin-top: 5px;
+}
+
+.offload-estimator button:hover {
+    background-color: #0056b3;
+}
+
+#offload-result {
+    margin-top: 10px;
+    font-weight: bold;
+    color: #f1f1f1;
+}
+
+@media (max-width: 720px) {
+    .container, .offload-estimator {
+        max-width: 90%; /* Take most of the screen width */
+    }
+}
+
+/* Custom styles for the contact section */
+.contact-section {
+    font-size: 0.95em;
+    color: #f1f1f1;
+    background-color: #333;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #3b3b3b;
+}
+
+/* Cell tower summary styling */
+#cell-tower-summary {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #2a2a2a;
+    border-radius: 8px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3);
+    color: #f1f1f1;
+}
