@@ -178,7 +178,7 @@ function calculateOffload() {
 
     // Display the result as a range for both offload and earnings
     const resultElement = document.getElementById("offload-result");
-    resultElement.innerHTML = `Estimated Offload: ${maxEstimatedOffloadGB.toFixed(2)} GB<br>
+    resultElement.innerHTML = `Estimated Offload: On average around ${maxEstimatedOffloadGB.toFixed(2)} GB<br>
                               Estimated Earnings: Up to $${maxEarnings.toFixed(2)}`;
 }
 
