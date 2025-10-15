@@ -173,8 +173,8 @@ function calculateOffload() {
     const maxEstimatedOffloadGB = maxEstimatedOffloadMB / 1024;
 
     // Calculate earnings estimate
-    const minEarnings = minEstimatedOffloadGB * 0.10; // $0.10 per GB for minimum
-    const maxEarnings = maxEstimatedOffloadGB * 4.00; // $4.00 per GB for maximum
+    const minEarnings = minEstimatedOffloadGB * 0.05;
+    const maxEarnings = maxEstimatedOffloadGB * 0.50;
 
     // Display the result as a range for both offload and earnings
     const resultElement = document.getElementById("offload-result");
