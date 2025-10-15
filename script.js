@@ -1,6 +1,57 @@
 // Global variable for the map
 let map;
 
+// Hardcoded earnings data from CSV - updated with latest data
+const locationEarningsData = {
+    'ASSEMBLY - AMPHITHEATER': 0.69,
+    'ASSEMBLY - AMUSEMENT PARK': 0.2,
+    'ASSEMBLY - ARENA': 0.13,
+    'ASSEMBLY - BAR': 0.18,
+    'ASSEMBLY - COFFEE SHOP': 0.13,
+    'ASSEMBLY - CONVENTION CENTER': 0.086,
+    'ASSEMBLY - LIBRARY': 0.34,
+    'ASSEMBLY - MUSEUM': 0.28,
+    'ASSEMBLY - PASSENGER TERMINAL (E.G., AIRPORT, BUS, FERRY, TRAIN STATION)': 0.35,
+    'ASSEMBLY - PLACE OF WORSHIP': 0.27,
+    'ASSEMBLY - RESTAURANT': 0.18,
+    'ASSEMBLY - THEATER': 0.39,
+    'ASSEMBLY - UNSPECIFIED ASSEMBLY': 0.14,
+    'BUSINESS - ATTORNEY OFFICE': 0.14,
+    'BUSINESS - BANK': 0.6,
+    'BUSINESS - DOCTOR OR DENTIST OFFICE': 0.2,
+    'BUSINESS - FIRE STATION': 0.17,
+    'BUSINESS - POST OFFICE': 0.23,
+    'BUSINESS - PROFESSIONAL OFFICE': 0.19,
+    'BUSINESS - RESEARCH AND DEVELOPMENT FACILITY': 0.18,
+    'BUSINESS - UNSPECIFIED BUSINESS': 0.23,
+    'EDUCATIONAL - SCHOOL, PRIMARY': 0.087,
+    'EDUCATIONAL - SCHOOL, SECONDARY': 0.087,
+    'EDUCATIONAL - UNIVERSITY OR COLLEGE': 0.073,
+    'EDUCATIONAL - UNSPECIFIED EDUCATIONAL': 0.23,
+    'FACTORY-INDUSTRIAL - FACTORY': 0.043,
+    'FACTORY-INDUSTRIAL - UNSPECIFIED FACTORY AND INDUSTRIAL': 0.095,
+    'INSTITUTIONAL - GROUP HOME': 0.12,
+    'INSTITUTIONAL - LONG-TERM CARE FACILITY (E.G., NURSING HOME, HOSPICE, ETC.)': 0.27,
+    'INSTITUTIONAL - UNSPECIFIED INSTITUTIONAL': 0.097,
+    'MERCANTILE - AUTOMOTIVE SERVICE STATION': 0.23,
+    'MERCANTILE - GAS STATION': 0.053,
+    'MERCANTILE - GROCERY MARKET': 0.04,
+    'MERCANTILE - RETAIL STORE': 0.16,
+    'MERCANTILE - SHOPPING MALL': 0.28,
+    'MERCANTILE - UNSPECIFIED MERCANTILE': 0.31,
+    'OUTDOOR - CITY PARK': 0.11,
+    'OUTDOOR - MUNI-MESH NETWORK': 0.24,
+    'OUTDOOR - REST AREA': 0.09,
+    'OUTDOOR - TRAFFIC CONTROL': 0.092,
+    'OUTDOOR - UNSPECIFIED OUTDOOR': 0.18,
+    'RESIDENTIAL - BOARDING HOUSE': 0.16,
+    'RESIDENTIAL - DORMITORY': 0.07,
+    'RESIDENTIAL - HOTEL OR MOTEL': 0.22,
+    'RESIDENTIAL - PRIVATE RESIDENCE': 0.1,
+    'RESIDENTIAL - UNSPECIFIED RESIDENTIAL': 0.11,
+    'STORAGE - UNSPECIFIED STORAGE': 0.16
+};
+
 // Generate or retrieve a unique identifier for the session
 function getSessionId() {
     // Check if a session ID already exists
@@ -133,9 +184,10 @@ function displayLocationType(locationType) {
 }
 
 function calculateOffload() {
-    // Get the value from the input field
+    // Get the values from the input fields
     const footTraffic = parseFloat(document.getElementById('foot-traffic').value);
     const dwellTime = document.getElementById('dwell-time').value;
+    const locationType = document.getElementById('location-type').value;
 
     // Check if the input is valid
     if (isNaN(footTraffic) || footTraffic < 0) {
@@ -172,14 +224,38 @@ function calculateOffload() {
     const minEstimatedOffloadGB = minEstimatedOffloadMB / 1024;
     const maxEstimatedOffloadGB = maxEstimatedOffloadMB / 1024;
 
-    // Calculate earnings estimate
-    const minEarnings = minEstimatedOffloadGB * 0.05;
-    const maxEarnings = maxEstimatedOffloadGB * 0.50;
+    let resultHTML = `<strong>Estimated Offload:</strong> On average around ${maxEstimatedOffloadGB.toFixed(2)} GB<br>`;
+    
+    // Check if location type is selected and has data
+    if (locationType && locationEarningsData[locationType] !== undefined) {
+        const avgEarningsPerGB = locationEarningsData[locationType];
+        
+        // Calculate user's estimated earnings using location-specific data
+        if (avgEarningsPerGB && avgEarningsPerGB > 0) {
+            const minEarningsSpecific = minEstimatedOffloadGB * avgEarningsPerGB;
+            const maxEarningsSpecific = maxEstimatedOffloadGB * avgEarningsPerGB;
+            resultHTML += `<strong>Your Estimated Earnings:</strong> $${minEarningsSpecific.toFixed(2)} - $${maxEarningsSpecific.toFixed(2)}<br>`;
+        } else {
+            // Fall back to hardcoded range if no specific earning per GB data
+            const minEarnings = minEstimatedOffloadGB * 0.05;
+            const maxEarnings = maxEstimatedOffloadGB * 0.50;
+            resultHTML += `<strong>Your Estimated Earnings (fallback range):</strong> $${minEarnings.toFixed(2)} - $${maxEarnings.toFixed(2)}<br>`;
+        }
+        
+    } else {
+        // Use existing hardcoded range if no location type selected or data not available
+        const minEarnings = minEstimatedOffloadGB * 0.05;
+        const maxEarnings = maxEstimatedOffloadGB * 0.50;
+        resultHTML += `<strong>Estimated Earnings (standard range):</strong> $${minEarnings.toFixed(2)} - $${maxEarnings.toFixed(2)}<br>`;
+        
+        if (!locationType) {
+            resultHTML += `<em>Tip: Select a location type above for more accurate earnings estimates.</em><br>`;
+        }
+    }
 
-    // Display the result as a range for both offload and earnings
+    // Display the result
     const resultElement = document.getElementById("offload-result");
-    resultElement.innerHTML = `Estimated Offload: On average around ${maxEstimatedOffloadGB.toFixed(2)} GB<br>
-                              Estimated Earnings: Up to $${maxEarnings.toFixed(2)}`;
+    resultElement.innerHTML = resultHTML;
 }
 
 async function showSuggestions(query) {
