@@ -51,6 +51,98 @@
         </div>
 
         <div class="offload-estimator">
+            <label for="location-type">Select Location Type:</label>
+            <select id="location-type">
+                <option value="">Select a location type...</option>
+                <optgroup label="ASSEMBLY">
+                    <option value="ASSEMBLY - UNSPECIFIED ASSEMBLY">Unspecified Assembly</option>
+                    <option value="ASSEMBLY - ARENA">Arena</option>
+                    <option value="ASSEMBLY - STADIUM">Stadium</option>
+                    <option value="ASSEMBLY - PASSENGER TERMINAL (E.G., AIRPORT, BUS, FERRY, TRAIN STATION)">Passenger Terminal (Airport, Bus, Ferry, Train Station)</option>
+                    <option value="ASSEMBLY - AMPHITHEATER">Amphitheater</option>
+                    <option value="ASSEMBLY - AMUSEMENT PARK">Amusement Park</option>
+                    <option value="ASSEMBLY - PLACE OF WORSHIP">Place of Worship</option>
+                    <option value="ASSEMBLY - CONVENTION CENTER">Convention Center</option>
+                    <option value="ASSEMBLY - LIBRARY">Library</option>
+                    <option value="ASSEMBLY - MUSEUM">Museum</option>
+                    <option value="ASSEMBLY - RESTAURANT">Restaurant</option>
+                    <option value="ASSEMBLY - THEATER">Theater</option>
+                    <option value="ASSEMBLY - BAR">Bar</option>
+                    <option value="ASSEMBLY - COFFEE SHOP">Coffee Shop</option>
+                    <option value="ASSEMBLY - ZOO OR AQUARIUM">Zoo or Aquarium</option>
+                    <option value="ASSEMBLY - EMERGENCY COORDINATION CENTER">Emergency Coordination Center</option>
+                </optgroup>
+                <optgroup label="BUSINESS">
+                    <option value="BUSINESS - UNSPECIFIED BUSINESS">Unspecified Business</option>
+                    <option value="BUSINESS - DOCTOR OR DENTIST OFFICE">Doctor or Dentist Office</option>
+                    <option value="BUSINESS - BANK">Bank</option>
+                    <option value="BUSINESS - FIRE STATION">Fire Station</option>
+                    <option value="BUSINESS - POLICE STATION">Police Station</option>
+                    <option value="BUSINESS - POST OFFICE">Post Office</option>
+                    <option value="BUSINESS - PROFESSIONAL OFFICE">Professional Office</option>
+                    <option value="BUSINESS - RESEARCH AND DEVELOPMENT FACILITY">Research and Development Facility</option>
+                    <option value="BUSINESS - ATTORNEY OFFICE">Attorney Office</option>
+                </optgroup>
+                <optgroup label="EDUCATIONAL">
+                    <option value="EDUCATIONAL - UNSPECIFIED EDUCATIONAL">Unspecified Educational</option>
+                    <option value="EDUCATIONAL - SCHOOL, PRIMARY">School, Primary</option>
+                    <option value="EDUCATIONAL - SCHOOL, SECONDARY">School, Secondary</option>
+                    <option value="EDUCATIONAL - UNIVERSITY OR COLLEGE">University or College</option>
+                </optgroup>
+                <optgroup label="FACTORY-INDUSTRIAL">
+                    <option value="FACTORY-INDUSTRIAL - UNSPECIFIED FACTORY AND INDUSTRIAL">Unspecified Factory and Industrial</option>
+                    <option value="FACTORY-INDUSTRIAL - FACTORY">Factory</option>
+                </optgroup>
+                <optgroup label="INSTITUTIONAL">
+                    <option value="INSTITUTIONAL - UNSPECIFIED INSTITUTIONAL">Unspecified Institutional</option>
+                    <option value="INSTITUTIONAL - HOSPITAL">Hospital</option>
+                    <option value="INSTITUTIONAL - LONG-TERM CARE FACILITY (E.G., NURSING HOME, HOSPICE, ETC.)">Long-term Care Facility (Nursing Home, Hospice, etc.)</option>
+                    <option value="INSTITUTIONAL - ALCOHOL AND DRUG RE-HABILITATION CENTER">Alcohol and Drug Rehabilitation Center</option>
+                    <option value="INSTITUTIONAL - GROUP HOME">Group Home</option>
+                    <option value="INSTITUTIONAL - PRISON OR JAIL">Prison or Jail</option>
+                </optgroup>
+                <optgroup label="MERCANTILE">
+                    <option value="MERCANTILE - UNSPECIFIED MERCANTILE">Unspecified Mercantile</option>
+                    <option value="MERCANTILE - RETAIL STORE">Retail Store</option>
+                    <option value="MERCANTILE - GROCERY MARKET">Grocery Market</option>
+                    <option value="MERCANTILE - AUTOMOTIVE SERVICE STATION">Automotive Service Station</option>
+                    <option value="MERCANTILE - SHOPPING MALL">Shopping Mall</option>
+                    <option value="MERCANTILE - GAS STATION">Gas Station</option>
+                </optgroup>
+                <optgroup label="RESIDENTIAL">
+                    <option value="RESIDENTIAL - UNSPECIFIED RESIDENTIAL">Unspecified Residential</option>
+                    <option value="RESIDENTIAL - PRIVATE RESIDENCE">Private Residence</option>
+                    <option value="RESIDENTIAL - HOTEL OR MOTEL">Hotel or Motel</option>
+                    <option value="RESIDENTIAL - DORMITORY">Dormitory</option>
+                    <option value="RESIDENTIAL - BOARDING HOUSE">Boarding House</option>
+                </optgroup>
+                <optgroup label="STORAGE">
+                    <option value="STORAGE - UNSPECIFIED STORAGE">Unspecified Storage</option>
+                </optgroup>
+                <optgroup label="UTILITY-MISC">
+                    <option value="UTILITY-MISC - UNSPECIFIED UTILITY AND MISCELLANEOUS">Unspecified Utility and Miscellaneous</option>
+                </optgroup>
+                <optgroup label="VEHICULAR">
+                    <option value="VEHICULAR - UNSPECIFIED VEHICULAR">Unspecified Vehicular</option>
+                    <option value="VEHICULAR - AUTOMOBILE OR TRUCK">Automobile or Truck</option>
+                    <option value="VEHICULAR - AIRPLANE">Airplane</option>
+                    <option value="VEHICULAR - BUS">Bus</option>
+                    <option value="VEHICULAR - FERRY">Ferry</option>
+                    <option value="VEHICULAR - SHIP OR BOAT">Ship or Boat</option>
+                    <option value="VEHICULAR - TRAIN">Train</option>
+                    <option value="VEHICULAR - MOTOR BIKE">Motor Bike</option>
+                </optgroup>
+                <optgroup label="OUTDOOR">
+                    <option value="OUTDOOR - UNSPECIFIED OUTDOOR">Unspecified Outdoor</option>
+                    <option value="OUTDOOR - MUNI-MESH NETWORK">Muni-mesh Network</option>
+                    <option value="OUTDOOR - CITY PARK">City Park</option>
+                    <option value="OUTDOOR - REST AREA">Rest Area</option>
+                    <option value="OUTDOOR - TRAFFIC CONTROL">Traffic Control</option>
+                    <option value="OUTDOOR - BUS STOP">Bus Stop</option>
+                    <option value="OUTDOOR - KIOSK">Kiosk</option>
+                </optgroup>
+            </select>
+
             <label for="foot-traffic">Enter Estimated Foot Traffic:</label>
             <input type="number" id="foot-traffic" placeholder="Enter your estimated monthly or yearly guest count."
                 min="0" />
